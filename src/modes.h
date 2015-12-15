@@ -1,5 +1,14 @@
-#ifndef MODES_H
-#define MODES_H
+// src/modes.h
+//----------------------------------
+// RGB-LED Controller Source Code
+// Copyright (c) 2015 Marius Graefe
+// All rights reserved
+// Contact: stuff@mgraefe.de
+//----------------------------------
+
+#pragma once
+#ifndef rgbledsrc__modes_H__
+#define rgbledsrc__modes_H__
 
 enum mode_choice_e
 {
@@ -12,4 +21,4 @@ enum mode_choice_e
 	MODE_LAST, //Always last
 };
 
-#endif // MODES_H
+#endif // rgbledsrc__modes_H__

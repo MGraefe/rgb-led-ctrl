@@ -1,5 +1,14 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+// src/mainwindow.h
+//----------------------------------
+// RGB-LED Controller Source Code
+// Copyright (c) 2015 Marius Graefe
+// All rights reserved
+// Contact: stuff@mgraefe.de
+//----------------------------------
+
+#pragma once
+#ifndef rgbledsrc__mainwindow_H__
+#define rgbledsrc__mainwindow_H__
 
 #include <QtWidgets/QMainWindow>
 #include "ui_mainwindow.h"
@@ -51,4 +60,4 @@ private:
 	ColorDisplayWidget *m_colorDisplayWidget;
 };
 
-#endif // MAINWINDOW_H
+#endif // rgbledsrc__mainwindow_H__

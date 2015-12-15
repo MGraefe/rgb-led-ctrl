@@ -1,5 +1,14 @@
-#ifndef SERIALTHREAD_H__
-#define SERIALTHREAD_H__
+// src/serialthread.h
+//----------------------------------
+// RGB-LED Controller Source Code
+// Copyright (c) 2015 Marius Graefe
+// All rights reserved
+// Contact: stuff@mgraefe.de
+//----------------------------------
+
+#pragma once
+#ifndef rgbledsrc__serialthread_H__
+#define rgbledsrc__serialthread_H__
 
 #include <QTHread>
 #include <QtSerialPort/QtSerialPort>
@@ -23,4 +32,4 @@ private:
 	volatile bool m_stop;
 };
 
-#endif // SERIALTHREAD_H__
+#endif // rgbledsrc__serialthread_H__

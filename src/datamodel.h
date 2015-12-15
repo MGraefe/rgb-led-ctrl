@@ -1,5 +1,14 @@
-#ifndef DATAMODEL_H__
-#define DATAMODEL_H__
+// src/datamodel.h
+//----------------------------------
+// RGB-LED Controller Source Code
+// Copyright (c) 2015 Marius Graefe
+// All rights reserved
+// Contact: stuff@mgraefe.de
+//----------------------------------
+
+#pragma once
+#ifndef rgbledsrc__datamodel_H__
+#define rgbledsrc__datamodel_H__
 
 #include <QColor>
 #include "modes.h"
