@@ -17,6 +17,7 @@
 #include "datamodel.h"
 #include "serialthread.h"
 #include "ColorDisplayWidget.h"
+#include <QSystemTrayIcon>
 
 class MainWindow : public QMainWindow
 {
@@ -42,9 +43,14 @@ protected slots:
 	void onBreatheSpeedChanged(int value);
 	void onPortSettingsApplyClicked();
 	void onOutputColorChanged(QColor color);
+	void onAboutClicked();
+	void onSysTrayActivated(QSystemTrayIcon::ActivationReason reason);
+	void onSysTrayShowHideClicked();
+	void onSysTrayExitClicked();
 
 protected:
 	void closeEvent(QCloseEvent *evt);
+	void changeEvent(QEvent *evt);
 
 private:
 	void writeDataToGui();
@@ -58,6 +64,7 @@ private:
 	QList<QSerialPortInfo> m_serialPorts;
 	SerialThread *m_serialThread;
 	ColorDisplayWidget *m_colorDisplayWidget;
+	QSystemTrayIcon *m_trayIcon;
 };
 
 #endif // rgbledsrc__mainwindow_H__

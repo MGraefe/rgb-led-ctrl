@@ -19,7 +19,22 @@ MainWindow::MainWindow(QWidget *parent):
 	m_serialThread(NULL)
 {
 	ui.setupUi(this);
+
+	// System Tray Icon
+	m_trayIcon = new QSystemTrayIcon(this->windowIcon(), this);
+	m_trayIcon->setToolTip(tr("RGB Led Controller"));
+	QAction *trayShowHideAction = new QAction(tr("Show/Hide"), m_trayIcon);
+	QAction *trayExitAction = new QAction(tr("Close"), m_trayIcon);
+	connect(m_trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), SLOT(onSysTrayActivated(QSystemTrayIcon::ActivationReason)));
+	connect(trayShowHideAction, SIGNAL(triggered()), SLOT(onSysTrayShowHideClicked()));
+	connect(trayExitAction, SIGNAL(triggered()), SLOT(onSysTrayExitClicked()));
+	QMenu *trayMenu = new QMenu();
+	trayMenu->addAction(trayShowHideAction);
+	trayMenu->addAction(trayExitAction);
+	m_trayIcon->setContextMenu(trayMenu);
+	m_trayIcon->show();
 	
+	// Serial port settings
 	m_serialPorts = QSerialPortInfo::availablePorts();
 	for (const QSerialPortInfo &port : m_serialPorts)
 		ui.comPortCombo->addItem(port.portName());
@@ -27,16 +42,19 @@ MainWindow::MainWindow(QWidget *parent):
 	ui.baudRateCombo->addItems(QStringList({"300", "600", "1200", "2400",
 		"4800", "9600", "14400", "19200", "28800", "38400", "57600", "115200"}));
 
+	// Color display widget
 	m_colorDisplayWidget = new ColorDisplayWidget(this);
 	m_colorDisplayWidget->setMinimumSize(QSize(0, 30));
 	ui.horizontalLayout_7->addWidget(m_colorDisplayWidget);
 
+	// Mode Radio Buttons
 	QButtonGroup *group = new QButtonGroup(this);
 	group->addButton(ui.staticColorRadio);
 	group->addButton(ui.fadeTwoRadio);
 	group->addButton(ui.fadeAllRadio);
 	group->addButton(ui.breatheRadio);
 
+	// Connect all the signals!
 	connect(group, SIGNAL(buttonClicked(QAbstractButton*)), SLOT(onModeButtonPressed(QAbstractButton*)));
 	connect(ui.maxBrightnessSlider, SIGNAL(valueChanged(int)), SLOT(onMaxBrightnessChanged(int)));
 	connect(ui.staticColorButton, SIGNAL(clicked()), SLOT(onStaticColorClicked()));
@@ -47,9 +65,12 @@ MainWindow::MainWindow(QWidget *parent):
 	connect(ui.breatheColorButton, SIGNAL(clicked()), SLOT(onBreatheColorClicked()));
 	connect(ui.breatheSpeedSlider, SIGNAL(valueChanged(int)), SLOT(onBreatheSpeedChanged(int)));
 	connect(ui.portSettingsApplyButton, SIGNAL(clicked()), SLOT(onPortSettingsApplyClicked()));
+	connect(ui.actionAbout, SIGNAL(triggered(bool)), SLOT(onAboutClicked()));
 
+	// Read the settings from registry/file
 	readSettings();
 
+	// Create the serial thread
 	createSerialThread();
 }
 
@@ -179,6 +200,16 @@ void MainWindow::closeEvent(QCloseEvent *evt)
 	QMainWindow::closeEvent(evt);
 }
 
+void MainWindow::changeEvent(QEvent *evt)
+{
+	// Hold back the minimize event to process other messages,
+	// Needed to make minimize to tray work
+	if (evt->type() == QEvent::WindowStateChange && windowState() & Qt::WindowMinimized)
+		QTimer::singleShot(0, this, SLOT(hide()));
+
+	QMainWindow::changeEvent(evt);
+}
+
 void MainWindow::onModeButtonPressed(QAbstractButton *button)
 {
 	data.mode = parseActiveMode();
@@ -232,4 +263,34 @@ void MainWindow::onPortSettingsApplyClicked()
 void MainWindow::onOutputColorChanged(QColor color)
 {
 	m_colorDisplayWidget->setColor(color);
+}
+
+void MainWindow::onAboutClicked()
+{
+	QMessageBox::about(this, tr("About RGB Led Controller"),
+		QString::fromLatin1("RGB Led Controller\n\nCopyright (c) 2015 Marius Gr\344fe"));
+}
+
+void MainWindow::onSysTrayActivated(QSystemTrayIcon::ActivationReason reason)
+{
+	if (reason == QSystemTrayIcon::DoubleClick)
+		onSysTrayShowHideClicked();
+}
+
+void MainWindow::onSysTrayShowHideClicked()
+{
+	if (isVisible())
+	{
+		hide();
+	}
+	else
+	{
+		show();
+		setWindowState(windowState() & ~Qt::WindowMinimized | Qt::WindowActive);
+	}
+}
+
+void MainWindow::onSysTrayExitClicked()
+{
+	close();
 }

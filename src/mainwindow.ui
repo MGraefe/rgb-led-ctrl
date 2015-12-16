@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>RGB LED Controller</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="mainwindow.qrc">
+    <normaloff>:/MainWindow/img/icon128.png</normaloff>:/MainWindow/img/icon128.png</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_5">
     <item>

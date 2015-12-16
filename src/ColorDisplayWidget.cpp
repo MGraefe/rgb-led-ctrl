@@ -11,7 +11,8 @@
 #include "ColorDisplayWidget.h"
 
 ColorDisplayWidget::ColorDisplayWidget(QWidget *parent) :
-	QWidget(parent)
+	QWidget(parent),
+	m_color(100, 100, 100)
 {}
 
 void ColorDisplayWidget::setColor(const QColor &color)

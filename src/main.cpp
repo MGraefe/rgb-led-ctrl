@@ -18,7 +18,14 @@ int main(int argc, char *argv[])
 	QCoreApplication::setOrganizationDomain("mgraefe.de");
 	QCoreApplication::setApplicationName("RGB-LED-Controller");
 
+	bool startMinimized = false;
+	for (int i = 1; i < argc; i++)
+		if (strcmp(argv[i], "-minimized") == 0)
+			startMinimized = true;
+
 	MainWindow w;
-	w.show();
+	if (!startMinimized)
+		w.show();
+
 	return a.exec();
 }
