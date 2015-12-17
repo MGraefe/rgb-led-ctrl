@@ -128,7 +128,7 @@ void HttpPostServer::run()
 	memset(&sockAddrIn, 0, sizeof(sockAddrIn));
 	sockAddrIn.sin_port = htons(m_port);
 	sockAddrIn.sin_family = AF_INET;
-	sockAddrIn.sin_addr.s_addr = m_loopbackOnly ? INADDR_LOOPBACK : INADDR_ANY;
+	sockAddrIn.sin_addr.s_addr = htonl(m_loopbackOnly ? INADDR_LOOPBACK : INADDR_ANY);
 	if (bind(m_listenSocket, (sockaddr*)&sockAddrIn, sizeof(sockAddrIn)) == SOCKET_ERROR)
 	{
 		printf("Error binding server to port %i on IPv4, already bound?\n", m_port);
