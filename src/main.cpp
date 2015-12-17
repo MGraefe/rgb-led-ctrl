@@ -9,6 +9,13 @@
 #include "stdafx.h"
 #include "mainwindow.h"
 #include <QtWidgets/QApplication>
+#include "HttpPostServer.h"
+
+void serverEndPoint(const char *data, size_t size)
+{
+	std::string str(data, data + size);
+	qDebug() << str.c_str();
+}
 
 int main(int argc, char *argv[])
 {
@@ -26,6 +33,9 @@ int main(int argc, char *argv[])
 	MainWindow w;
 	if (!startMinimized)
 		w.show();
+
+	HttpPostServer server(&serverEndPoint, 1337, false);
+	server.start();
 
 	return a.exec();
 }
