@@ -33,13 +33,13 @@ float clamp(float val, float min = 0.0f, float max = 1.0f)
 QColor operator*(const QColor &c, float f)
 {
 	return QColor::fromRgbF(clamp(c.redF() * f), clamp(c.greenF() * f),
-		clamp(c.blueF() * f), clamp(c.alphaF() * f));
+		clamp(c.blueF() * f));
 }
 
 QColor operator+(const QColor &a, const QColor &b)
 {
 	return QColor::fromRgbF(clamp(a.redF() + b.redF()), clamp(a.greenF() + b.greenF()),
-		clamp(a.blueF() + b.blueF()), clamp(a.alphaF() + b.alphaF()));
+		clamp(a.blueF() + b.blueF()));
 }
 
 QColor mixColor(const QColor &col0, const QColor &col1, float factor)
@@ -47,14 +47,32 @@ QColor mixColor(const QColor &col0, const QColor &col1, float factor)
 	return col0 * factor + col1 * (1.0f - factor);
 }
 
+QColor pow(const QColor &c, float exp)
+{
+	return QColor::fromRgbF(clamp(pow(c.redF(), exp)),
+		clamp(pow(c.greenF(), exp)), clamp(pow(c.blueF(), exp)));
+}
+
 void SerialThread::run()
 {
-	QSerialPort serialPort(m_portinfo);
-	serialPort.setBaudRate(m_baudrate);
+	QSerialPort serialPort;
+	serialPort.setPortName(m_portinfo.portName());
 	if (!serialPort.open(QIODevice::WriteOnly))
 	{
-		QMessageBox::critical(NULL, tr("Error opening serial port"),
-			tr("Could not open the specified serial port. Is it already in use?"));
+		//QMessageBox::critical(NULL, tr("Error opening serial port"),
+		//	tr("Could not open the specified serial port. Is it already in use?"));
+		qDebug() << "Error opening serial port: " << serialPort.errorString() << "is it already in use?";
+		return;
+	}
+	if (!serialPort.setBaudRate(m_baudrate) ||
+		!serialPort.setDataBits(QSerialPort::Data8) ||
+		!serialPort.setParity(QSerialPort::NoParity) ||
+		!serialPort.setStopBits(QSerialPort::OneStop) ||
+		!serialPort.setFlowControl(QSerialPort::NoFlowControl) ||
+		!serialPort.setDataTerminalReady(true) ||
+		!serialPort.setRequestToSend(true))
+	{
+		qDebug() << "Error settings port parameters";
 		return;
 	}
 
@@ -90,22 +108,26 @@ void SerialThread::run()
 			outSpeed = 0;
 		}
 		
-		time += deltaT * (outSpeed / 1000.0);
-		QColor finalColor = outColor * (m_data->maxBrightness / 1000.0f);
-		finalColor.setAlphaF(1.0);
+		time += deltaT * pow(outSpeed/1000.0, 3.0) * 10.0;
+		float gamma = 2.2f;
+		QColor finalColor = pow(outColor * (m_data->maxBrightness / 1000.0f), gamma);
 
 		const unsigned char syncByte = 0xAA;
-		unsigned char data[4] = { syncByte, finalColor.red(), finalColor.green(), finalColor.blue() };
-		qint64 bytesWritten = serialPort.write((char*)data, 4);
-		if (bytesWritten == -1)
+		char data[] = { syncByte, finalColor.red(), finalColor.green(), finalColor.blue() };
+		if (serialPort.isWritable())
 		{
-			QMessageBox::critical(NULL, tr("Error writing to serial port"),
-				tr("Could not write to the specified serial port."));
-			return;
+			qint64 bytesWritten = serialPort.write(data, 4);
+			if (bytesWritten == -1)
+			{
+				QMessageBox::critical(NULL, tr("Error writing to serial port"),
+					tr("Could not write to the specified serial port."));
+				return;
+			}
+			serialPort.waitForBytesWritten(100);
 		}
 
 		emit outputChanged(finalColor);
 
-		msleep(50);
+		msleep(20);
 	}
 }
