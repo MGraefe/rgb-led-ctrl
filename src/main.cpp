@@ -34,8 +34,5 @@ int main(int argc, char *argv[])
 	if (!startMinimized)
 		w.show();
 
-	HttpPostServer server(&serverEndPoint, 1337, false);
-	server.start();
-
 	return a.exec();
 }

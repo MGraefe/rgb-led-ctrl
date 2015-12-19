@@ -21,7 +21,11 @@ Win32SocketInitializer g_socketInitializerInstance;
 #endif // WIN32
 
 
-#define STATUS_OK "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n"
+#define STATUS_OK "HTTP/1.1 200 OK\r\n" \
+	"Content-Type: text/html\r\n" \
+	"Content-Length: 0\r\n" \
+	"Connection: keep-alive\r\n" \
+	"\r\n"
 
 
 HttpPostServer::HttpPostServer(std::function<void(const char*, size_t)> dataEndPoint, 
@@ -78,18 +82,19 @@ bool HttpPostServer::sendResult(SOCKET clientSocket, const char *result)
 	int bytesSend = 0;
 	while (bytesSend < bytesTotal)
 	{
-		fd_set fd_send;
-		FD_ZERO(&fd_send);
-		FD_SET(clientSocket, &fd_send);
-		struct timeval timeout = { 1, 0 };
-		int fss = select(clientSocket + 1, NULL, &fd_send, NULL, &timeout);
-		if (fss <= 0)
-			return false;
+		//fd_set fd_send;
+		//FD_ZERO(&fd_send);
+		//FD_SET(clientSocket, &fd_send);
+		//struct timeval timeout = { 1, 0 };
+		//int fss = select(clientSocket + 1, NULL, &fd_send, NULL, &timeout);
+		//if (fss <= 0)
+		//	return false;
 		int bytes = send(clientSocket, result, bytesTotal - bytesSend, NULL);
 		if (bytes <= 0)
 			return false;
 		bytesSend += bytes;
 	}
+	return true;
 }
 
 
@@ -162,6 +167,7 @@ void HttpPostServer::run()
 		memset(addr, 0, sizeof(sockaddr_in));
 		addrsize = sizeof(sockaddr_in);
 
+		qDebug() << "Listening for cons";
 		m_clientSocket = accept(m_listenSocket, addr, &addrsize);
 		free(addr);
 		if (m_clientSocket == INVALID_SOCKET)
@@ -169,6 +175,7 @@ void HttpPostServer::run()
 			printf("Error accepting client...\n");
 			continue;
 		}
+		qDebug() << "New client...";
 		
 		std::string recvBuffer;
 		char buf[2048];
@@ -192,7 +199,16 @@ void HttpPostServer::run()
 				break;
 		}
 
+		qDebug() << "Disconnected client...";
+
 		closesocket(m_clientSocket);
 		m_clientSocket = INVALID_SOCKET;
 	}
+}
+
+
+void HttpPostServer::stop()
+{
+	m_stop = true;
+	this->wait();
 }

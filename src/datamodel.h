@@ -12,10 +12,25 @@
 
 #include <QColor>
 #include "modes.h"
+#include <chrono>
+#include <mutex>
+
+enum BombStatus 
+{
+	BOMB_NOT_PLANTED,
+	BOMB_PLANTED,
+	BOMB_EXPLODED,
+	BOMB_DEFUSED
+};
 
 class DataModel
 {
 public:
+	typedef std::chrono::high_resolution_clock clock;
+	typedef QMutexLocker Lock;
+
+	QMutex mutex;
+
 	mode_choice_e mode;
 	int maxBrightness;
 	QColor staticColor;
@@ -25,6 +40,12 @@ public:
 	int fadeAllSpeed;
 	QColor breatheColor;
 	int breatheSpeed;
+
+	bool csgoBombTimerFeatureEnabled;
+	BombStatus csgoBombTimerStatus;
+	int csgoBombTimerDuration;
+	clock::time_point csgoBombPlantedTime;
+	clock::time_point csgoBombLastBeep;
 };
 
 #endif

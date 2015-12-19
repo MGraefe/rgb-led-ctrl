@@ -18,6 +18,7 @@
 #include "serialthread.h"
 #include "ColorDisplayWidget.h"
 #include <QSystemTrayIcon>
+#include "HttpPostServer.h"
 
 class MainWindow : public QMainWindow
 {
@@ -47,6 +48,7 @@ protected slots:
 	void onSysTrayActivated(QSystemTrayIcon::ActivationReason reason);
 	void onSysTrayShowHideClicked();
 	void onSysTrayExitClicked();
+	void processJsonData(const char *data, size_t size);
 
 protected:
 	void closeEvent(QCloseEvent *evt);
@@ -65,6 +67,7 @@ private:
 	SerialThread *m_serialThread;
 	ColorDisplayWidget *m_colorDisplayWidget;
 	QSystemTrayIcon *m_trayIcon;
+	HttpPostServer *m_httpServer;
 };
 
 #endif // rgbledsrc__mainwindow_H__

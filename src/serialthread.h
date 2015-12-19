@@ -21,11 +21,14 @@ public:
 	SerialThread(QSerialPortInfo portinfo, int baudrate, DataModel *data);
 	void stop();
 	virtual void run();
+	
 
 signals:
 	void outputChanged(QColor color);
 
 private:
+	void handleBombTimer(QColor &outColor);
+
 	QSerialPortInfo m_portinfo;
 	int m_baudrate;
 	DataModel *m_data;

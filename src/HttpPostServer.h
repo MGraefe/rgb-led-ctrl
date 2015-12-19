@@ -19,6 +19,7 @@ public:
 	HttpPostServer(std::function<void(const char*, size_t)> dataEndPoint,
 		int port, bool loopbackOnly);
 	void run() override;
+	void stop();
 
 private:
 	bool examinePackets(std::string &recvBuffer, size_t &headerSize, size_t &contentSize);

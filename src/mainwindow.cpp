@@ -11,8 +11,8 @@
 #include <QSettings>
 #include <QtSerialPort/QtSerialPort>
 #include <QColorDialog>
-
-
+#include <QJsonDocument>
+#include <functional>
 
 MainWindow::MainWindow(QWidget *parent): 
 	QMainWindow(parent),
@@ -72,11 +72,21 @@ MainWindow::MainWindow(QWidget *parent):
 
 	// Create the serial thread
 	createSerialThread();
+
+	std::function<void(const char*, size_t)> dataEndPoint = std::bind(
+		&MainWindow::processJsonData, this, std::placeholders::_1, std::placeholders::_2);
+	m_httpServer = new HttpPostServer(dataEndPoint, 16362, true);
+	if (data.csgoBombTimerFeatureEnabled)
+		m_httpServer->start();
 }
 
 MainWindow::~MainWindow()
 {
-
+	if (m_httpServer)
+	{
+		m_httpServer->stop();
+		delete m_httpServer;
+	}
 }
 
 mode_choice_e MainWindow::parseActiveMode()
@@ -111,6 +121,7 @@ void MainWindow::safeSettings()
 	settings.setValue("fadeAllFadeSpeed", data.fadeAllSpeed);
 	settings.setValue("breatheColor", data.breatheColor);
 	settings.setValue("breatheSpeed", data.breatheSpeed);
+	settings.setValue("csgoBombTimerEnabled", data.csgoBombTimerFeatureEnabled);
 
 	settings.setValue("comPort", ui.comPortCombo->currentText());
 	settings.setValue("baudRate", ui.baudRateCombo->currentText().toInt());
@@ -132,6 +143,9 @@ void MainWindow::readSettings()
 	data.fadeAllSpeed = settings.value("fadeAllFadeSpeed", 300).toInt();
 	data.breatheColor = settings.value("breatheColor", QColor(0, 0, 255)).value<QColor>();
 	data.breatheSpeed = settings.value("breatheSpeed", 300).toInt();
+	data.csgoBombTimerFeatureEnabled = settings.value("csgoBombTimerEnabled", true).toBool();
+	data.csgoBombTimerDuration = settings.value("csgoBombTimerDuration", 40).toInt();
+	data.csgoBombTimerStatus = BOMB_NOT_PLANTED;
 
 	ui.comPortCombo->setCurrentText(settings.value("comPort", "COM3").toString());
 	ui.baudRateCombo->setCurrentText(settings.value("baudRate", "9600").toString());
@@ -208,6 +222,50 @@ void MainWindow::changeEvent(QEvent *evt)
 		QTimer::singleShot(0, this, SLOT(hide()));
 
 	QMainWindow::changeEvent(evt);
+}
+
+// gets called from different thread
+void MainWindow::processJsonData(const char *data, size_t size)
+{
+	QJsonParseError parseError;
+	QJsonDocument doc = QJsonDocument::fromJson(QByteArray(data, size), &parseError);
+	if (parseError.error != QJsonParseError::NoError)
+	{
+		qDebug() << parseError.errorString();
+		return;
+	}
+
+	QJsonObject json = doc.object();
+	if (json["added"].toObject()["round"].toObject()["bomb"].toBool(false) &&
+		json["round"].toObject()["bomb"].toString() == "planted")
+	{
+		qDebug() << "Bomb planted";
+		DataModel::Lock lock(&this->data.mutex);
+		this->data.csgoBombPlantedTime = this->data.csgoBombLastBeep = DataModel::clock::now() - std::chrono::milliseconds(500);
+		this->data.csgoBombTimerStatus = BOMB_PLANTED;
+	}
+
+	if (json["previously"].toObject()["round"].toObject()["bomb"].toString() == "planted")
+	{
+		QString bombStatus = json["round"].toObject()["bomb"].toString();
+		if (bombStatus == "defused")
+		{
+			qDebug() << "Bomb defused";
+			DataModel::Lock lock(&this->data.mutex);
+			this->data.csgoBombTimerStatus = BOMB_DEFUSED;
+			this->data.csgoBombPlantedTime = DataModel::clock::now();
+		}
+		else if (bombStatus == "exploded")
+		{
+			qDebug() << "Bomb exploded";
+			this->data.csgoBombTimerStatus = BOMB_EXPLODED;
+		}
+		else
+		{
+			// Bomb timer status is reset by the serial thread
+			// Is this good? maybe not..
+		}
+	}
 }
 
 void MainWindow::onModeButtonPressed(QAbstractButton *button)
