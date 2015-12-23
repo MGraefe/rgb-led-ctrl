@@ -245,7 +245,8 @@ void MainWindow::processJsonData(const char *data, size_t size)
 		this->data.csgoBombTimerStatus = BOMB_PLANTED;
 	}
 
-	if (json["previously"].toObject()["round"].toObject()["bomb"].toString() == "planted")
+	QString bombPrev = json["previously"].toObject()["round"].toObject()["bomb"].toString();
+	if (bombPrev == "planted")
 	{
 		QString bombStatus = json["round"].toObject()["bomb"].toString();
 		if (bombStatus == "defused")
@@ -262,9 +263,14 @@ void MainWindow::processJsonData(const char *data, size_t size)
 		}
 		else
 		{
-			// Bomb timer status is reset by the serial thread
-			// Is this good? maybe not..
+			qDebug() << "Round ended - cts died";
+			this->data.csgoBombTimerStatus = BOMB_NOT_PLANTED;
 		}
+	}
+	else if (bombPrev == "exploded" || bombPrev == "defused")
+	{
+		qDebug() << "Round restarted after exploded/defused bomb";
+		this->data.csgoBombTimerStatus = BOMB_NOT_PLANTED;
 	}
 }
 

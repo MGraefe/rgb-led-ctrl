@@ -174,7 +174,7 @@ void SerialThread::handleBombTimer(QColor &outColor)
 		else
 			m_data->csgoBombTimerStatus = BOMB_NOT_PLANTED;
 	}
-	else
+	else if (m_data->csgoBombTimerStatus != BOMB_NOT_PLANTED)
 	{
 		if (secondsLeft > 1.0) // Normal blinking
 		{
@@ -190,14 +190,10 @@ void SerialThread::handleBombTimer(QColor &outColor)
 		{
 			outColor = QColor(255, 255, 255);
 		}
-		else if (secondsLeft > -5.0)
+		else if (m_data->csgoBombTimerStatus == BOMB_EXPLODED)
 		{
 			outColor = QColor(255, 100, 100) * (((sin(secondsLeft * 40.0) * 0.5 + 1.0) +
 				double(rand() % 100 - 50) * 0.01 * 0.4));
-		}
-		else
-		{
-			m_data->csgoBombTimerStatus = BOMB_NOT_PLANTED;
 		}
 	}
 }
