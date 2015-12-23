@@ -1,5 +1,14 @@
-#ifndef HTTPPOSTSERVER_H__
-#define HTTPPOSTSERVER_H__
+// src/HttpPostServer.h
+//----------------------------------
+// RGB-LED Controller Source Code
+// Copyright (c) 2015 Marius Graefe
+// All rights reserved
+// Contact: stuff@mgraefe.de
+//----------------------------------
+
+#pragma once
+#ifndef rgbledsrc__HttpPostServer_H__
+#define rgbledsrc__HttpPostServer_H__
 
 #include <QThread>
 #include <functional>
