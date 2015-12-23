@@ -49,6 +49,7 @@ protected slots:
 	void onSysTrayShowHideClicked();
 	void onSysTrayExitClicked();
 	void processJsonData(const char *data, size_t size);
+	void onAppQuit();
 
 protected:
 	void closeEvent(QCloseEvent *evt);

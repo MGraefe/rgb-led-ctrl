@@ -210,7 +210,6 @@ void MainWindow::openButtonColorDialog(QPushButton *button, QColor &color)
 
 void MainWindow::closeEvent(QCloseEvent *evt)
 {
-	safeSettings();
 	QMainWindow::closeEvent(evt);
 }
 
@@ -219,7 +218,10 @@ void MainWindow::changeEvent(QEvent *evt)
 	// Hold back the minimize event to process other messages,
 	// Needed to make minimize to tray work
 	if (evt->type() == QEvent::WindowStateChange && windowState() & Qt::WindowMinimized)
+	{
+		safeSettings();
 		QTimer::singleShot(0, this, SLOT(hide()));
+	}
 
 	QMainWindow::changeEvent(evt);
 }
@@ -345,6 +347,7 @@ void MainWindow::onSysTrayShowHideClicked()
 {
 	if (isVisible())
 	{
+		safeSettings();
 		hide();
 	}
 	else
@@ -357,4 +360,9 @@ void MainWindow::onSysTrayShowHideClicked()
 void MainWindow::onSysTrayExitClicked()
 {
 	close();
+}
+
+void MainWindow::onAppQuit()
+{
+	safeSettings();
 }

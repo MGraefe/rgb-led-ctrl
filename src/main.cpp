@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
 			startMinimized = true;
 
 	MainWindow w;
+	QObject::connect(&a, SIGNAL(aboutToQuit()), &w, SLOT(onAppQuit()));
 	if (!startMinimized)
 		w.show();
 
