@@ -131,8 +131,13 @@ void SerialThread::run()
 		QColor finalColor = outColor * (m_data->maxBrightness / 1000.0f);
 		QColor gammaCorrected = pow(finalColor, gamma);
 
-		const unsigned char syncByte = 0xAA;
-		char data[] = { syncByte, gammaCorrected.red(), gammaCorrected.green(), gammaCorrected.blue() };
+		const char syncByte = 0xAA;
+		char data[] = { syncByte, (char)gammaCorrected.red(), (char)gammaCorrected.green(), (char)gammaCorrected.blue() };
+
+        for (int i = 1; i < 4; i++) // Dont use sync byte in data, replace by syncByte + 1
+            if (data[i] == syncByte)
+                data[i] = syncByte + 1;
+
 		if (serialPort.isWritable())
 		{
 			qint64 bytesWritten = serialPort.write(data, 4);
